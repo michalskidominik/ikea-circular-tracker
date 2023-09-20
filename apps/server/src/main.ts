@@ -7,7 +7,10 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app/app.module';
-
+// TODO: Zaimplementować swagger
+// TODO: Zaimplementować DTO dla komunikacji endpointów i wykorzystać class-validator
+// TODO: W wersji 2.0 przepisać implementacje na CQRS
+// TODO: Wystawić HealthCheck
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const globalPrefix = 'api';

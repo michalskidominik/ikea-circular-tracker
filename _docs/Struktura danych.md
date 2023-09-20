@@ -5,39 +5,32 @@ Jesteś analitykiem biznesowym aplikacji webowych. Pracujesz nad planem aplikacj
 ## Funkcjonalności aplikacji
 
 ### 1. Rejestracja i Logowanie:
-
 - Użytkownik może się zarejestrować, podając swój adres e-mail i hasło.
 - Logowanie za pomocą adresu e-mail i hasła.
 - **(wersja 2.0)** Opcja resetowania hasła w przypadku jego zapomnienia.
 
 ### 2. Przeglądanie Promocji:
-
 - Wyświetlanie wszystkich aktualnych przedmiotów w promocji dla wybranego sklepu.
 - Filtracja i sortowanie przedmiotów według nazwy i sklepu IKEA.
 - Bezpośredni link do strony produktu w sklepie IKEA.
 
 ### 3. Wyszukiwarka Produktów:
-
 - Możliwość wyszukania konkretnego produktu zarówno wśród produktów w promocji, jak i w całym katalogu IKEA.
 
 ### 4. Obserwowanie Produktów:
-
 - Użytkownicy mogą dodać produkty do listy obserwowanych, aby otrzymywać powiadomienia o zmianach cen.
 - Wyświetlanie listy produktów, które użytkownik obserwuje.
 - Użytkownicy mogą usunąć produkty z listy obserwowanych.
 - **(wersja 3.0)** Możliwość ustawienia konkretnego progu ceny dla obserwowanego produktu, przy którym użytkownik dostanie powiadomienie.
 
 ### 5. Powiadomienia:
-
 - Automatyczne powiadomienia e-mail o nowych promocjach dotyczących obserwowanych produktów.
 
 ### 6. Zaktualizuj Profil:
-
 - **(wersja 2.0)** Użytkownik może zmienić swój adres e-mail lub hasło.
 - **(wersja 2.0)** Możliwość usunięcia konta.
 
 ## Struktura danych
-
 Aplikacja korzysta z bazy danych MongoDB. Baza danych zawiera cztery kolekcje, które przechowują dane użytkowników, przedmiotów, sklepów IKEA oraz historii cen.
 
 ### 1. Kolekcja Użytkowników (`users`):
