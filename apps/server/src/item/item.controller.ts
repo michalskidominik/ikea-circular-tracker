@@ -1,7 +1,8 @@
-import { Controller, Get, HttpStatus, Query, Res } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Query, Res, Request, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { IkeaConnectorService } from '../notification/ikea-connector.service';
 import { ItemService } from './item.service';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('item')
 export class ItemController {
@@ -59,5 +60,16 @@ export class ItemController {
     @Query('limit') limit: number | undefined
   ) {
     return this.itemService.searchItems(query, storeId, Number(page), Number(limit));
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('tracked-items')
+  async getTrackedItems(
+    @Request() req,
+    @Query('page') page: number | undefined,
+    @Query('limit') limit: number | undefined
+  ) {
+    const userId = req.user.sub;
+    return this.itemService.getTrackedItems(userId, Number(page), Number(limit));
   }
 }

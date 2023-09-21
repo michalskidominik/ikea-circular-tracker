@@ -24,9 +24,34 @@ Content-Type: application/json
 GET http://localhost:3000/api/item/update-discounted-items HTTP/1.1
 
 ### Track an item with ID XYZ
-POST http://localhost:3000/api/user/track/650c41d9bc94be2217f8fb14
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NTBiNjMwYmY4MzExOTg3NTVkNDdjNWIiLCJ1c2VybmFtZSI6ImV4YW1wbGVAZXhhbXBsZS5jb20iLCJpYXQiOjE2OTUzMDM0NDgsImV4cCI6MTY5NTMwNzA0OH0.Thu3JmAFQAH1lUVQVVLU7e1dpJl8BxfPjncyEs_gbBI
+POST http://localhost:3000/api/user/track/650c56df6452ba26e60a62d2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NTBiNjMwYmY4MzExOTg3NTVkNDdjNWIiLCJ1c2VybmFtZSI6ImV4YW1wbGVAZXhhbXBsZS5jb20iLCJpYXQiOjE2OTUzMDk4MzEsImV4cCI6MTY5NTMxMzQzMX0.Z40QMvUC5a5Sut7f2YCtpayJskKyFLDuExlGTVdif2M
 
 ### Untrack an item with ID XYZ
 DELETE http://localhost:3000/api/user/untrack/650c41d9bc94be2217f8fb14
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NTBiNjMwYmY4MzExOTg3NTVkNDdjNWIiLCJ1c2VybmFtZSI6ImV4YW1wbGVAZXhhbXBsZS5jb20iLCJpYXQiOjE2OTUzMDM0NDgsImV4cCI6MTY5NTMwNzA0OH0.Thu3JmAFQAH1lUVQVVLU7e1dpJl8BxfPjncyEs_gbBI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NTBiNjMwYmY4MzExOTg3NTVkNDdjNWIiLCJ1c2VybmFtZSI6ImV4YW1wbGVAZXhhbXBsZS5jb20iLCJpYXQiOjE2OTUzMDk4MzEsImV4cCI6MTY5NTMxMzQzMX0.Z40QMvUC5a5Sut7f2YCtpayJskKyFLDuExlGTVdif2M
+
+### Get discounted items
+GET http://localhost:3000/api/item/discounts?storeId=204&page=1&limit=10
+Accept: application/json
+
+###
+
+### Get hottest deals
+GET http://localhost:3000/api/item/hottest-deals?storeId=204&page=1&limit=10
+Accept: application/json
+
+###
+
+### Search items
+GET http://localhost:3000/api/item/search?query=YOUR_SEARCH_QUERY&storeId=YOUR_STORE_ID&page=1&limit=10
+Accept: application/json
+
+###
+
+### Get tracked items (requires authentication)
+GET http://localhost:3000/api/item/tracked-items?page=1&limit=10
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NTBiNjMwYmY4MzExOTg3NTVkNDdjNWIiLCJ1c2VybmFtZSI6ImV4YW1wbGVAZXhhbXBsZS5jb20iLCJpYXQiOjE2OTUzMDk4MzEsImV4cCI6MTY5NTMxMzQzMX0.Z40QMvUC5a5Sut7f2YCtpayJskKyFLDuExlGTVdif2M
+Accept: application/json
+
+###
