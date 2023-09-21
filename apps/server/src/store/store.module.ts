@@ -8,5 +8,6 @@ import { Store, StoreSchema } from './store.schema';
   imports: [MongooseModule.forFeature([{ name: Store.name, schema: StoreSchema }])],
   providers: [StoreService],
   controllers: [StoreController],
+  exports: [StoreService]
 })
 export class StoreModule {}

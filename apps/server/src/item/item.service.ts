@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Item } from './item.schema';
+import { Product } from '@shared-models';
 import { Model } from 'mongoose';
 import { UserService } from '../user/user.service';
+import { Item } from './item.schema';
 
 @Injectable()
 export class ItemService {
@@ -10,6 +11,27 @@ export class ItemService {
     @InjectModel(Item.name) private readonly itemModel: Model<Item>,
     private readonly userService: UserService
   ) {}
+
+  async truncateDiscountedItems(): Promise<void> {
+    await this.itemModel.deleteMany({}).exec();
+  }
+
+  async addDiscountedItemsFromProducts(products: Product[]): Promise<void> {
+    const items = products.map((product) => ({
+      name: product.title,
+      itemId: product.id.toString(),
+      storeId: product.storeId.toString(),
+      originalPrice: product.articlesPrice,
+      discountPrice: product.price,
+      imageUrl: product.heroImage,
+      ikeaUrl: `https://www.ikea.com/pl/pl/p/${product.id}`, // This is a guess. Actual URL format may be different.
+      reasonDiscount: product.reasonDiscount,
+      lastChecked: new Date(),
+      nextCheckTime: null, // If you have a specific time in mind, set it here.
+    }));
+
+    await this.itemModel.insertMany(items);
+  }
 
   async getDiscountedItems(
     storeId: string,
@@ -33,8 +55,10 @@ export class ItemService {
     page = 1,
     limit = 12
   ): Promise<{ items: Item[]; totalPages: number; currentPage: number }> {
+    const regexQuery = new RegExp(query, 'i');
+
     const filter = {
-      name: new RegExp(query, 'i'),
+      $or: [{ name: regexQuery }, { itemId: regexQuery }],
       storeId,
     };
     const items = await this.itemModel
@@ -46,6 +70,37 @@ export class ItemService {
     const totalPages = Math.ceil(count / limit);
     return { items, totalPages, currentPage: page };
   }
+
+  async getHottestDeals(
+    storeId: string,
+    page = 1,
+    limit = 12
+  ): Promise<{ items: Item[]; totalPages: number; currentPage: number }> {
+
+    const items = await this.itemModel.aggregate([
+      {
+        $match: { storeId }
+      },
+      {
+        $addFields: {
+          discountDifference: { $subtract: ["$originalPrice", "$discountPrice"] }
+        }
+      },
+      {
+        $sort: { discountDifference: -1 }  // -1 for descending order
+      },
+      {
+        $skip: (page - 1) * limit
+      },
+      {
+        $limit: limit
+      }
+    ]).exec();
+
+    const count = await this.itemModel.countDocuments({ storeId });
+    const totalPages = Math.ceil(count / limit);
+    return { items, totalPages, currentPage: page };
+}
 
   async getTrackedItems(
     userId: string,

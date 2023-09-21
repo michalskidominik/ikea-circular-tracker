@@ -5,6 +5,9 @@ export interface Product {
   /** Unikalny identyfikator produktu. */
   id: number;
 
+  /** Unikalny identyfikator sklepu. */
+  storeId: string;
+
   /** Tytuł produktu. */
   title: string;
 

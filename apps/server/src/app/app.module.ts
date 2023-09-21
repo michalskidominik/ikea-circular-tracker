@@ -9,6 +9,8 @@ import { UserModule } from '../user/user.module';
 import { ItemModule } from '../item/item.module';
 import { PriceHistoryModule } from '../price-history/price-history.module';
 import { StoreModule } from '../store/store.module';
+import { NotificationModule } from '../notification/notification.module';
+import { DatebaseInitializerService } from './database.initializer.service';
 
 @Module({
   imports: [
@@ -18,9 +20,10 @@ import { StoreModule } from '../store/store.module';
     ItemModule,
     PriceHistoryModule,
     StoreModule,
+    NotificationModule,
     MongooseModule.forRoot('mongodb://localhost:27017/ikea-circular-tracker'),
   ], // TODO: move to env
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, DatebaseInitializerService],
 })
 export class AppModule {}

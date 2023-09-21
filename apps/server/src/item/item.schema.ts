@@ -6,6 +6,9 @@ export type ItemDocument = HydratedDocument<Item>;
 @Schema()
 export class Item extends Document {
   @Prop({ required: true })
+  itemId: string;
+
+  @Prop({ required: true })
   name: string;
 
   @Prop({ required: true })
@@ -22,6 +25,12 @@ export class Item extends Document {
 
   @Prop({ required: true })
   ikeaUrl: string;
+
+  @Prop()
+  reasonDiscount: string | null;
+
+  @Prop()
+  additionalInfo: string | null;
 
   @Prop()
   lastChecked: Date;

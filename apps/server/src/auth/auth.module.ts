@@ -9,7 +9,7 @@ import { AuthController } from './auth.controller';
   imports: [UserModule, JwtModule.register({
     global: true,
     secret: jwtConstants.secret,
-    signOptions: { expiresIn: '60s' },
+    signOptions: { expiresIn: '3600s' },
   })],
   providers: [AuthService],
   controllers: [AuthController],

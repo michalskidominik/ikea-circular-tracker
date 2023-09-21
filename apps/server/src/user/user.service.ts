@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './user.schema';
@@ -34,15 +34,33 @@ export class UserService {
   }
 
   async trackItem(userId: string, itemId: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, {
-      $addToSet: { trackedItems: itemId },
-    });
+    const user = await this.findById(userId);
+    if (user.trackedItems.includes(itemId)) {
+      throw new BadRequestException('Item is already tracked.');
+    }
+
+    try {
+      await this.userModel.findByIdAndUpdate(userId, {
+        $addToSet: { trackedItems: itemId },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to track the item.');
+    }
   }
 
   async untrackItem(userId: string, itemId: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, {
-      $pull: { trackedItems: itemId },
-    });
+    const user = await this.findById(userId);
+    if (!user.trackedItems.includes(itemId)) {
+      throw new BadRequestException('Item is not being tracked.');
+    }
+
+    try {
+      await this.userModel.findByIdAndUpdate(userId, {
+        $pull: { trackedItems: itemId },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to untrack the item.');
+    }
   }
 
   async findByEmail(email: string): Promise<User | undefined> {

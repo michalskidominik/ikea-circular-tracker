@@ -1,21 +1,84 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
-import { map } from 'rxjs/operators';
-import { SearchResponse } from '@shared-models'
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Product, SearchResponse } from '@shared-models';
+import { StoreService } from '../store/store.service';
 
 @Injectable()
 export class IkeaConnectorService {
-  constructor(private readonly httpService: HttpService) {}
+  private readonly BASE_URL =
+    'https://web-api.ikea.com/circular/circular-asis/api/public/store/pl/pl/';
+  private readonly MAX_PAGE_SIZE = 64;
+  private readonly MAX_RETRIES = 3;
+  private readonly RETRY_DELAY = 2000; // 2 seconds
 
-  // example GET https://web-api.ikea.com/circular/circular-asis/api/public/store/pl/pl/204?page=0&size=16&search=40430588
-  async getProductsByArticleNumber(articleNumber: string) {
-    const url = `https://web-api.ikea.com/circular/circular-asis/api/public/store/pl/pl/204?page=0&size=16&search=${articleNumber}`;
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly storeService: StoreService
+  ) {}
 
-    return this.httpService.get<SearchResponse>(url).pipe(map((response) => response.data));
+  async fetchAllProducts(): Promise<Product[]> {
+    const stores = await this.storeService.getAllStores(); // Pobranie wszystkich sklepów
+    const allProducts: Product[] = [];
+
+    if (stores.length === 0) {
+      throw new InternalServerErrorException('No stores found in database');
+    }
+
+    for (const store of stores) {
+      let page = 0;
+      let hasNextPage = true;
+      const baseUrlForStore = `${this.BASE_URL}${store.storeId}`;
+
+      while (hasNextPage) {
+        const url = `${baseUrlForStore}?page=${page}&size=${this.MAX_PAGE_SIZE}`;
+
+        let retries = 0;
+        let success = false;
+
+        while (retries < this.MAX_RETRIES && !success) {
+          try {
+            const response = await this.httpService
+              .get<SearchResponse>(url)
+              .toPromise();
+
+            if (response.data.empty) {
+              hasNextPage = false;
+              break;
+            }
+
+            if (response.data.content && response.data.content.length > 0) {
+              allProducts.push(
+                ...response.data.content.map((product) => ({
+                  ...product,
+                  storeId: store.storeId,
+                }))
+              );
+            }
+
+            if (response.data.last) {
+              hasNextPage = false;
+            } else {
+              page += 1;
+            }
+            success = true;
+          } catch (error) {
+            retries += 1;
+            if (retries < this.MAX_RETRIES) {
+              await new Promise((resolve) =>
+                setTimeout(resolve, this.RETRY_DELAY)
+              );
+            }
+          }
+        }
+
+        if (!success) {
+          throw new InternalServerErrorException(
+            `Failed to fetch data for store ${store.name} from IKEA after ${this.MAX_RETRIES} attempts`
+          );
+        }
+      }
+    }
+
+    return allProducts;
   }
 }
-
-// TODO
-// 1. Zaimplementować metodę, która komunikuje się z API Ikea w celu pobrania obecnych promocji
-// 2. Zaimplementować metodę - crawler, która pobiera dostępne sklepy z IKEA
-// 3. Zaimplementować metodę, która zwraca dopasowania dostępnych produktów z Ikea po search query
