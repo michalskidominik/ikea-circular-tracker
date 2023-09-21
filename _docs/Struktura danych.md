@@ -178,6 +178,29 @@ Response:
 }
 ```
 
+**Pobranie przedmiotów posortowanych od największej przeceny:**  
+GET `/api/items/hottest-deals?storeId=<storeId>&page=<pageNumber>&limit=<pageSize>`  
+Response:
+
+```json
+{
+  "items": [
+    {
+      "_id": "string",
+      "name": "string",
+      "storeId": "string",
+      "originalPrice": 0,
+      "discountPrice": 0,
+      "discountDifference": 0,
+      "imageUrl": "string",
+      "ikeaUrl": "string"
+    }
+  ],
+  "totalPages": 0,
+  "currentPage": "number"
+}
+```
+
 ---
 
 **Wyszukiwanie przedmiotów:**  
