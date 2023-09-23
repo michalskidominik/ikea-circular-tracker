@@ -1,8 +1,16 @@
-import { Controller, Get, HttpStatus, Query, Res, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpStatus,
+  Query,
+  Request,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Response } from 'express';
+import { AuthGuard } from '../auth/auth.guard';
 import { IkeaConnectorService } from '../notification/ikea-connector.service';
 import { ItemService } from './item.service';
-import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('item')
 export class ItemController {
@@ -11,17 +19,20 @@ export class ItemController {
     private readonly itemService: ItemService
   ) {}
 
-  @Get('update-discounted-items')
-  async updateDiscountedItems(@Res() res: Response): Promise<Response> {
+  // TODO: przenieść do serwisu notification
+  // dev-only
+  @Get('refresh-discounted-items')
+  async refreshDiscountedItems(@Res() res: Response): Promise<Response> {
     try {
       // Fetch all products from IKEA
       const products = await this.ikeaService.fetchAllProducts();
 
-      // Truncate the discounted items in database
-      await this.itemService.truncateDiscountedItems();
+      // Remove the outdated discounted items in database
 
-      // Add the fetched products to database
-      await this.itemService.addDiscountedItemsFromProducts(products);
+      await this.itemService.removeOutdatedDiscountedItems(products);
+
+      // Add the new fetched products to database
+      await this.itemService.addNewDiscountedItemsFromProducts(products);
 
       return res
         .status(HttpStatus.OK)
@@ -34,13 +45,26 @@ export class ItemController {
     }
   }
 
+  // TODO: przenieść do serwisu notification
+  // dev-only
+  @Get('find-updates-for-tracked-items')
+  async findUpdatesForTrackedItems(@Res() res: Response): Promise<Response> {
+    const items = await this.itemService.findUpdatesForTrackedItems();
+
+    return res.json(items);
+  }
+
   @Get('discounts')
   async getDiscountedItems(
     @Query('storeId') storeId: string,
     @Query('page') page: number | undefined,
     @Query('limit') limit: number | undefined
   ) {
-    return this.itemService.getDiscountedItems(storeId, Number(page), Number(limit));
+    return this.itemService.getDiscountedItems(
+      storeId,
+      Number(page),
+      Number(limit)
+    );
   }
 
   @Get('hottest-deals')
@@ -49,7 +73,11 @@ export class ItemController {
     @Query('page') page: number | undefined,
     @Query('limit') limit: number | undefined
   ) {
-    return this.itemService.getHottestDeals(storeId, Number(page), Number(limit));
+    return this.itemService.getHottestDeals(
+      storeId,
+      Number(page),
+      Number(limit)
+    );
   }
 
   @Get('search')
@@ -59,7 +87,12 @@ export class ItemController {
     @Query('page') page: number | undefined,
     @Query('limit') limit: number | undefined
   ) {
-    return this.itemService.searchItems(query, storeId, Number(page), Number(limit));
+    return this.itemService.searchItems(
+      query,
+      storeId,
+      Number(page),
+      Number(limit)
+    );
   }
 
   @UseGuards(AuthGuard)
@@ -70,6 +103,10 @@ export class ItemController {
     @Query('limit') limit: number | undefined
   ) {
     const userId = req.user.sub;
-    return this.itemService.getTrackedItems(userId, Number(page), Number(limit));
+    return this.itemService.getTrackedItems(
+      userId,
+      Number(page),
+      Number(limit)
+    );
   }
 }

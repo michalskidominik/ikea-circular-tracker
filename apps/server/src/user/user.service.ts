@@ -75,4 +75,8 @@ export class UserService {
     }
     return user;
   }
+
+  async findUsersWithTrackedItems(): Promise<User[]> {
+    return this.userModel.find({ trackedItems: { $not: { $size: 0 } } }).exec();
+  }
 }
