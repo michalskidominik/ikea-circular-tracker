@@ -11,18 +11,20 @@ import { PriceHistoryModule } from '../price-history/price-history.module';
 import { StoreModule } from '../store/store.module';
 import { NotificationModule } from '../notification/notification.module';
 import { DatebaseInitializerService } from './database.initializer.service';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     HttpModule,
+    ScheduleModule.forRoot(),
     AuthModule,
     UserModule,
     ItemModule,
     PriceHistoryModule,
     StoreModule,
     NotificationModule,
-    MongooseModule.forRoot('mongodb://localhost:27017/ikea-circular-tracker'),
-  ], // TODO: move to env
+    MongooseModule.forRoot('mongodb://localhost:27017/ikea-circular-tracker'), // TODO: move to env
+  ],
   controllers: [AppController],
   providers: [AppService, DatebaseInitializerService],
 })

@@ -4,6 +4,9 @@ import { Product } from '@shared-models';
 import { Model } from 'mongoose';
 import { UserService } from '../user/user.service';
 import { Item } from './item.schema';
+import { User } from '../user/user.schema';
+
+const GET_UNIQUE_PRODUCT_ID = (product: Product): string => product.heroImage.slice(0, -7); //TODO: zastanowić się jak zbudować unikalne ID // product.id.toString();
 
 @Injectable()
 export class ItemService {
@@ -14,8 +17,9 @@ export class ItemService {
     private readonly userService: UserService
   ) {}
 
+  // TODO: a co jak są duplikaty, bo itemId nie jest unikalne?
   async removeOutdatedDiscountedItems(products: Product[]): Promise<void> {
-    const newProductIds = products.map((product) => product.id.toString());
+    const newProductIds = products.map((product) => GET_UNIQUE_PRODUCT_ID(product).toString());
 
     // Fetch the items that are about to be deleted
     const itemsToDelete = await this.itemModel.find({
@@ -25,6 +29,7 @@ export class ItemService {
     // Log the items
     if (itemsToDelete.length === 0) {
       this.logger.log('No items to delete');
+      return;
     } else {
       itemsToDelete.forEach((item) => {
         this.logger.log(
@@ -32,6 +37,9 @@ export class ItemService {
         );
       });
     }
+
+    const itemIdsToDelete = itemsToDelete.map((item) => item.itemId);
+    this.userService.removeItemsFromNotifiedList(itemIdsToDelete);
 
     // Delete the items
     await this.itemModel.deleteMany({ itemId: { $nin: newProductIds } });
@@ -42,11 +50,12 @@ export class ItemService {
       (item) => item.itemId
     );
 
+
     const items = products
-      .filter((product) => !existingItemIds.includes(product.id.toString()))
+      .filter((product) => !existingItemIds.includes(GET_UNIQUE_PRODUCT_ID(product)))
       .map((product) => ({
         name: product.title,
-        itemId: product.id.toString(),
+        itemId: GET_UNIQUE_PRODUCT_ID(product),
         storeId: product.storeId.toString(),
         originalPrice: product.articlesPrice,
         discountPrice: product.price,
@@ -184,6 +193,7 @@ export class ItemService {
     };
   }
 
+  // TODO: rozbudować o śledzenie przedmiotu w ramach konkretnego sklepu Ikea
   async findUpdatesForTrackedItems(): Promise<
     { userId: string; items: string[] }[]
   > {
@@ -195,7 +205,7 @@ export class ItemService {
     for (const user of usersWithTrackedItems) {
       const itemsToUpdate = await this.itemModel
         .find({
-          _id: { $in: user.trackedItems, $nin: user.notifiedItems },
+          itemId: { $in: user.trackedItems, $nin: user.notifiedItems },
         })
         .select('_id')
         .exec();

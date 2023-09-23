@@ -1,10 +1,18 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './user.schema';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>
   ) {}
@@ -29,10 +37,36 @@ export class UserService {
     await this.userModel.findByIdAndUpdate(userId, updateData);
   }
 
+  async removeItemsFromNotifiedList(itemIds: string[]): Promise<void> {
+    // Znajdź użytkowników, którzy mają te przedmioty w swojej liście notifiedItems
+    const affectedUsers = await this.userModel.find({
+      notifiedItems: { $in: itemIds },
+    });
+
+    // Loguj informacje o usuwanych przedmiotach dla każdego użytkownika
+    for (const user of affectedUsers) {
+      const itemsToRemove = user.notifiedItems.filter((item) =>
+        itemIds.includes(item)
+      );
+      this.logger.log(
+        `For user ${
+          user.email
+        }, removing items from notifiedItems: ${itemsToRemove.join(', ')}`
+      );
+    }
+
+    // Aktualizuj rekordy użytkowników
+    await this.userModel.updateMany(
+      { notifiedItems: { $in: itemIds } },
+      { $pull: { notifiedItems: { $in: itemIds } } }
+    );
+  }
+
   async deleteUser(userId: string): Promise<void> {
     await this.userModel.findByIdAndDelete(userId);
   }
 
+  // TODO: zmienić z itemId (które jest unikalnym id w ramach wyłącznie Okazji na Okrągło) na itemUrl (które jest unikalnym id w ramach całego IKEA)
   async trackItem(userId: string, itemId: string): Promise<void> {
     const user = await this.findById(userId);
     if (user.trackedItems.includes(itemId)) {

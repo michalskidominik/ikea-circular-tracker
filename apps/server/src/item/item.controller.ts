@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  HttpStatus,
   Query,
   Request,
   Res,
@@ -9,41 +8,11 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthGuard } from '../auth/auth.guard';
-import { IkeaConnectorService } from '../notification/ikea-connector.service';
 import { ItemService } from './item.service';
 
 @Controller('item')
 export class ItemController {
-  constructor(
-    private readonly ikeaService: IkeaConnectorService,
-    private readonly itemService: ItemService
-  ) {}
-
-  // TODO: przenieść do serwisu notification
-  // dev-only
-  @Get('refresh-discounted-items')
-  async refreshDiscountedItems(@Res() res: Response): Promise<Response> {
-    try {
-      // Fetch all products from IKEA
-      const products = await this.ikeaService.fetchAllProducts();
-
-      // Remove the outdated discounted items in database
-
-      await this.itemService.removeOutdatedDiscountedItems(products);
-
-      // Add the new fetched products to database
-      await this.itemService.addNewDiscountedItemsFromProducts(products);
-
-      return res
-        .status(HttpStatus.OK)
-        .json({ message: 'Discounted items updated successfully.' });
-    } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message:
-          'An error occurred while updating items. ' + JSON.stringify(error),
-      });
-    }
-  }
+  constructor(private readonly itemService: ItemService) {}
 
   // TODO: przenieść do serwisu notification
   // dev-only

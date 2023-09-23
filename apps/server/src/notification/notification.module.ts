@@ -1,5 +1,6 @@
 import { HttpModule } from '@nestjs/axios';
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
+import { ItemModule } from '../item/item.module';
 import { StoreModule } from '../store/store.module';
 import { IkeaConnectorService } from './ikea-connector.service';
 import { MailNotificationService } from './mail-notification/mail-notification.service';
@@ -8,7 +9,11 @@ import { PushNotificationService } from './push-notification/push-notification.s
 import { ScheduleService } from './schedule/schedule.service';
 
 @Module({
-  imports: [HttpModule, StoreModule],
+  imports: [
+    HttpModule,
+    forwardRef(() => StoreModule),
+    forwardRef(() => ItemModule),
+  ],
   providers: [
     IkeaConnectorService,
     PushNotificationService,
@@ -16,6 +21,5 @@ import { ScheduleService } from './schedule/schedule.service';
     ScheduleService,
   ],
   controllers: [NotificationController],
-  exports: [IkeaConnectorService]
 })
 export class NotificationModule {}
